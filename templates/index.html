@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Profile Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Profile Matcher</h1>
+        <form id="profile-form">
+            <label for="job-description">Job Description:</label>
+            <input type="text" id="job-description" name="job_description">
+            <label for="data-source">Data Source:</label>
+            <select id="data-source" name="source">
+                <option value="mongo">MongoDB</option>
+                <option value="es">Elasticsearch</option>
+            </select>
+            <button type="button" onclick="matchProfiles()">Match Profiles</button>
+        </form>
+        <div id="results" class="results-container"></div>
+    </div>
+
+    <script>
+        async function matchProfiles() {
+            const jobDescription = document.getElementById('job-description').value;
+            const source = document.getElementById('data-source').value;
+
+            const response = await fetch('/match', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    job_description: jobDescription,
+                    source: source
+                })
+            });
+
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
+            if (data.length === 0) {
+                resultsContainer.innerHTML = '<p>No profiles found.</p>';
+                return;
+            }
+
+            data.forEach(profile => {
+                const profileDiv = document.createElement('div');
+                profileDiv.classList.add('profile');
+
+                const profileText = document.createElement('pre');
+                profileText.innerText = profile;
+
+                profileDiv.appendChild(profileText);
+                resultsContainer.appendChild(profileDiv);
+            });
+        }
+    </script>
+</body>
+</html>
